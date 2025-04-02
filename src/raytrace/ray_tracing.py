@@ -4,11 +4,10 @@ This module implements a basic graphics renderer in PyTorch for ray tracing,
 focusing on batched matrix operations.
 
 Key Concepts:
-- **Camera**: Positioned at the origin, emitting rays towards a screen at x=1.
+- **Camera**: Emitting rays from (x0, 0, 0) to a screen at x=x1.
 - **Screen**: A plane where ray intersections are visualized.
 - **Objects**: Made of triangles, defined by three 3D points.
-- **Rays**: Defined by an origin and a direction, emitted from the camera.
-
+- **Rays**: Defined by an origin and a next-point, emitted from the camera.
 """
 
 import einops
@@ -31,9 +30,7 @@ def generate_rays_2d(
     y_limit: At x=1, rays extend from -y_limit to +y_limit.
     z_limit: At x=1, rays extend from -z_limit to +z_limit.
 
-    Returns: A tensor of shape
-        (num_rays=num_pixels_y * num_pixels_z, num_points=2, num_dims=3),
-        representing the origin and direction of each ray.
+    Returns: the origin and next-point of each ray.
     """
     source = einops.repeat(
         t.tensor([0, 0, 0], dtype=t.float),
@@ -57,24 +54,11 @@ def compute_mesh_intersections(
     between rays and a mesh of triangles.
 
     Parameters:
-    - triangles (Tensor): Shape (n_triangles, points=3, dims=3) representing the
-    vertices of each triangle.
-    - rays (Tensor): Shape (n_rays, points=2, dims=3) representing the origin and
-    direction of each ray.
+    triangles: the vertices of each triangle.
+    rays: the origin and next-point of each ray.
 
     Returns:
-    - A tensor of shape (n_rays,) indicating the distance to the closest intersecting
-    triangle or infinity if no intersection occurs.
-
-    Process:
-    1. Calculate the intersection point using the triangle-ray intersection formula.
-    2. Determine barycentric coordinates (u, v) to verify if the intersection is within
-    triangle bounds.
-    3. Handle multiple intersections by finding the minimum distance for each ray.
-    4. Ensure numerical stability by checking for degeneracy in the intersection
-    equation.
-    5. Return intersection distances; use infinity for rays not intersecting any
-    triangles.
+    the distance to the closest intersecting triangle or infinity.
     """
     device = t.device("cuda:0")
     triangles = triangles.to(device)
