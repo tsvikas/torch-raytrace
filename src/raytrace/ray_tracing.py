@@ -66,17 +66,13 @@ def compute_mesh_intersections(
 
     n_triangles = triangles.shape[0]
     n_rays = rays.shape[0]
-    assert triangles.shape == (n_triangles, 3, 3)
-    assert rays.shape == (n_rays, 2, 3)
 
     # create (n_rays, xyz) tensors:
     As, Bs, Cs = einops.repeat(  # noqa: N806
-        triangles,
-        "triangles p3 xyz -> p3 rays triangles xyz",
-        rays=n_rays,
+        triangles, "triangles p3 xyz -> p3 rays triangles xyz", p3=3, xyz=3, rays=n_rays
     )
     Os, Ds = einops.repeat(  # noqa: N806
-        rays, "rays p2 xyz -> p2 rays triangles xyz", triangles=n_triangles
+        rays, "rays p2 xyz -> p2 rays triangles xyz", p2=2, xyz=3, triangles=n_triangles
     )
     # solve
     left: Float[t.Tensor, "rays triangles xyz suv"] = t.stack(

@@ -183,7 +183,7 @@ ignore = [
   "RET504",   # flake8-return/unnecessary-assign
   # ban something useful for a possibly good reason
   #"C901",     # mccabe/complex-structure
-  #"S101",     # flake8-bandit/assert
+  "S101",     # flake8-bandit/assert
   #"PD901",    # pandas-vet/pandas-df-variable-name
   #"FIX00",    # flake8-fixme/line-contains-*
   #"ERA001",   # eradicate/commented-out-code
