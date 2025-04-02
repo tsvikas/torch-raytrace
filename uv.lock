@@ -614,6 +614,18 @@ wheels = [
 ]
 
 [[package]]
+name = "jaxtyping"
+version = "0.3.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "wadler-lindig" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5e/3b/38accb83b537af7f2badc4cc25d90228592f3ea95aa0b11a05a5360079ab/jaxtyping-0.3.1.tar.gz", hash = "sha256:38bb47dc090696ed5959bf3c7e8659036d3cd2643f882c9208d5d9644ae789fe", size = 44846 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ae/57/9e5ad8c4a6ee8059a28b4183df639ae20da2d9c34572b193ba6020611bd7/jaxtyping-0.3.1-py3-none-any.whl", hash = "sha256:44fbd091338f7f8d592e4e8c71123658feb35a23d07d095af67dbfa96010872d", size = 55257 },
+]
+
+[[package]]
 name = "jedi"
 version = "0.19.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1704,6 +1716,7 @@ name = "raytrace"
 source = { editable = "." }
 dependencies = [
     { name = "einops" },
+    { name = "jaxtyping" },
     { name = "torch" },
 ]
 
@@ -1737,6 +1750,7 @@ typing = [
 [package.metadata]
 requires-dist = [
     { name = "einops", specifier = ">=0.8" },
+    { name = "jaxtyping", specifier = ">=0.3.1" },
     { name = "torch", specifier = ">=2.6.0" },
 ]
 
@@ -2137,6 +2151,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/38/e0/633e369b91bbc664df47dcb5454b6c7cf441e8f5b9d0c250ce9f0546401e/virtualenv-20.30.0.tar.gz", hash = "sha256:800863162bcaa5450a6e4d721049730e7f2dae07720e0902b0e4040bd6f9ada8", size = 4346945 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/4c/ed/3cfeb48175f0671ec430ede81f628f9fb2b1084c9064ca67ebe8c0ed6a05/virtualenv-20.30.0-py3-none-any.whl", hash = "sha256:e34302959180fca3af42d1800df014b35019490b119eba981af27f2fa486e5d6", size = 4329461 },
+]
+
+[[package]]
+name = "wadler-lindig"
+version = "0.1.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/39/7a/fea25d7985211556bbe2511d42e07453b484bf8e0d5d6109aabb08f52784/wadler_lindig-0.1.4.tar.gz", hash = "sha256:75aa3ddd384573c41d5c910fd990e655c2a641e5093cf5081650d0229daf87ad", size = 15356 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7b/69/cfb1af44622044d4db0cad65721d283a921a4795f0ad121616b9eaa6ccd7/wadler_lindig-0.1.4-py3-none-any.whl", hash = "sha256:5c463aeb1f4ddc4acc12c3708d22ae21bcfc3e19e7c4d7aeef6642ea57b1a8b8", size = 20126 },
 ]
 
 [[package]]
