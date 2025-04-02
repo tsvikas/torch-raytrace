@@ -1,4 +1,4 @@
-"""Triangle Rendering Module
+"""Triangle Rendering Module.
 
 This module implements a basic graphics renderer in PyTorch for ray tracing,
 focusing on batched matrix operations.
@@ -19,19 +19,19 @@ from torch import linalg
 def generate_rays_2d(
     num_pixels_y: int, num_pixels_z, y_limit: float, z_limit: float
 ) -> t.Tensor:
-    """Generates 2D Rays from the Origin
+    """Generate 2D Rays from the Origin.
 
-    This function creates rays emitted from the origin (0, 0, 0) in both y and z dimensions,
-    forming a pyramid shape with the tip at the origin.
+    This function creates rays emitted from the origin (0, 0, 0) in both y and z
+    dimensions, forming a pyramid shape with the tip at the origin.
 
     Parameters:
-    - num_pixels_y (int): Number of pixels in the y dimension.
-    - num_pixels_z (int): Number of pixels in the z dimension.
-    - y_limit (float): At x=1, rays extend from -y_limit to +y_limit.
-    - z_limit (float): At x=1, rays extend from -z_limit to +z_limit.
+    num_pixels_y: Number of pixels in the y dimension.
+    num_pixels_z: Number of pixels in the z dimension.
+    y_limit: At x=1, rays extend from -y_limit to +y_limit.
+    z_limit: At x=1, rays extend from -z_limit to +z_limit.
 
-    Returns:
-    - A tensor of shape (num_rays=num_pixels_y * num_pixels_z, num_points=2, num_dims=3),
+    Returns: A tensor of shape
+        (num_rays=num_pixels_y * num_pixels_z, num_points=2, num_dims=3),
         representing the origin and direction of each ray.
     """
     source = einops.repeat(
@@ -48,24 +48,30 @@ def generate_rays_2d(
 
 
 def compute_mesh_intersections(triangles: t.Tensor, rays: t.Tensor) -> t.Tensor:
-    """
-    Ray Tracing for Mesh Rendering
+    """Ray Tracing for Mesh Rendering.
 
-    This function performs ray tracing to determine the closest intersection distance between rays and a mesh of triangles.
+    This function performs ray tracing to determine the closest intersection distance
+    between rays and a mesh of triangles.
 
     Parameters:
-    - triangles (Tensor): Shape (n_triangles, points=3, dims=3) representing the vertices of each triangle.
-    - rays (Tensor): Shape (n_pixels, points=2, dims=3) representing the origin and direction of each ray.
+    - triangles (Tensor): Shape (n_triangles, points=3, dims=3) representing the
+    vertices of each triangle.
+    - rays (Tensor): Shape (n_pixels, points=2, dims=3) representing the origin and
+    direction of each ray.
 
     Returns:
-    - A tensor of shape (n_pixels,) indicating the distance to the closest intersecting triangle or infinity if no intersection occurs.
+    - A tensor of shape (n_pixels,) indicating the distance to the closest intersecting
+    triangle or infinity if no intersection occurs.
 
     Process:
     1. Calculate the intersection point using the triangle-ray intersection formula.
-    2. Determine barycentric coordinates (u, v) to verify if the intersection is within triangle bounds.
+    2. Determine barycentric coordinates (u, v) to verify if the intersection is within
+    triangle bounds.
     3. Handle multiple intersections by finding the minimum distance for each ray.
-    4. Ensure numerical stability by checking for degeneracy in the intersection equation.
-    5. Return intersection distances; use infinity for rays not intersecting any triangles.
+    4. Ensure numerical stability by checking for degeneracy in the intersection
+    equation.
+    5. Return intersection distances; use infinity for rays not intersecting any
+    triangles.
     """
     device = t.device("cuda:0")
     triangles = triangles.to(device)
@@ -108,6 +114,28 @@ def compute_mesh_intersections(triangles: t.Tensor, rays: t.Tensor) -> t.Tensor:
 
 
 def perform_ray_tracing(triangles, num_pixels_y, num_pixels_z, y_limit, z_limit):
+    """Perform Ray Tracing on a Mesh.
+
+    This function executes ray tracing to render a 2D image of a mesh composed of
+    triangles.
+
+    Parameters:
+    - triangles: Tensor containing the vertices of the triangles in the mesh.
+    - num_pixels_y: Number of pixels along the y-axis.
+    - num_pixels_z: Number of pixels along the z-axis.
+    - y_limit: Maximum extent of rays along the y-axis at x=1.
+    - z_limit: Maximum extent of rays along the z-axis at x=1.
+
+    Process:
+    1. Generates rays emitted from the origin spanning the specified y and z limits.
+    2. Adjusts the ray origins for proper viewing of the mesh.
+    3. Rotates the scene for perspective using a 90-degree rotation around the y-axis.
+    4. Computes the intersection of rays with the mesh triangles.
+    5. Reshapes and returns the resulting intersection distances in a 2D format.
+
+    Returns:
+    - A tensor representing the intersection distances as a pixel grid.
+    """
     rays = generate_rays_2d(
         num_pixels_y, num_pixels_z, y_limit, z_limit
     )  # pixels point xyz
