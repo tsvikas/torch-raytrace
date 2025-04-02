@@ -54,3 +54,20 @@ def test_raytrace(ndarrays_regression: NDArraysRegressionFixture) -> None:
     )
     screen = ray_tracing.compute_mesh_intersections(triangles, rays)
     ndarrays_regression.check({"screen": screen.cpu().numpy()})
+
+
+def test_raytrace_translation() -> None:
+    triangles = assets.load("pikachu")
+    num_pixels_y = num_pixels_z = 30
+    y_limit = z_limit = 2
+    x0 = -10
+    x1 = 10
+    rays = ray_tracing.generate_rays_2d(
+        num_pixels_y, num_pixels_z, y_limit, z_limit, x0, x1, device=triangles.device
+    )
+    screen = ray_tracing.compute_mesh_intersections(triangles, rays)
+    translation = torch.tensor([10, 20, 30], device=triangles.device)
+    screen_translated = ray_tracing.compute_mesh_intersections(
+        triangles + translation, rays + translation
+    )
+    assert_close(screen, screen_translated)
