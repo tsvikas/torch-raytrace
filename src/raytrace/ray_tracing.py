@@ -105,8 +105,7 @@ def compute_mesh_intersections(
     seen_s: Float[t.Tensor, "rays triangles"] = s.where(
         seen, t.tensor(float("inf"), device=seen.device)
     )
-    dist_s: Float[t.Tensor, "rays"] = seen_s.amin(-1)  # n_rays
-    dist: Float[t.Tensor, "rays"] = dist_s / rays[:, 1].pow(2).sum(-1).sqrt()
+    dist: Float[t.Tensor, "rays"] = seen_s.amin(-1)
     (dist,) = einops.unpack(dist, rays_packed_shape, "*")
     return dist.cpu()
 
