@@ -88,7 +88,7 @@ def compute_mesh_intersections(
     )
     # solve
     left: Float[t.Tensor, "rays triangles xyz suv"] = t.stack(
-        [-Ds, Bs - As, Cs - As], dim=-1
+        [Os - Ds, Bs - As, Cs - As], dim=-1
     )
     right: Float[t.Tensor, "rays triangles xyz"] = Os - As
 
