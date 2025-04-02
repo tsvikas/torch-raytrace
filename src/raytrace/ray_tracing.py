@@ -47,7 +47,7 @@ def generate_rays_2d(
 
 def compute_mesh_intersections(
     triangles: Float[t.Tensor, "triangles 3 xyz"], rays: Float[t.Tensor, "rays 2 xyz"]
-) -> Float[t.Tensor, "rays"]:
+) -> Float[t.Tensor, "rays"]:  # type: ignore[name-defined, unused-ignore]  # noqa: F821
     """Ray Tracing for Mesh Rendering.
 
     This function performs ray tracing to determine the closest intersection distance

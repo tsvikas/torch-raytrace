@@ -175,6 +175,9 @@ ignore = [
   # disagree:
   "PD010",    # pandas-vet/pandas-use-of-dot-pivot-or-unstack
   "PD013",    # pandas-vet/pandas-use-of-dot-stack
+  # incompatible with jaxtyping
+  "UP037",    # pyupgrade/quoted-annotation
+  "F722",     # Pyflakes/forward-annotation-syntax-error
   # annoying:
   "EM10",     # flake8-errmsg/*-in-exception
   "RET504",   # flake8-return/unnecessary-assign
