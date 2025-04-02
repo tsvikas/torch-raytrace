@@ -13,11 +13,11 @@ def test_rays_2d() -> None:
     y_limit = 0.3
     z_limit = 0.3
     rays_2d = ray_tracing.generate_rays_2d(n_y, n_z, y_limit, z_limit)
-    assert rays_2d.shape == (n_y * n_z, 2, 3)
-    assert_close(rays_2d[:, 0, :], torch.zeros(n_y * n_z, 3))
+    assert rays_2d.shape == (n_y, n_z, 2, 3)
+    assert_close(rays_2d[:, :, 0, :], torch.zeros(n_y, n_z, 3))
     end_x, end_y, end_z = einops.rearrange(
-        rays_2d[:, 1, :],
-        "(rays_y rays_z) xyz -> xyz rays_y rays_z",
+        rays_2d[:, :, 1, :],
+        "rays_y rays_z xyz -> xyz rays_y rays_z",
         rays_y=n_y,
         rays_z=n_z,
     )

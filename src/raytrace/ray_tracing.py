@@ -18,7 +18,7 @@ from torch import linalg
 
 def generate_rays_2d(
     num_pixels_y: int, num_pixels_z: int, y_limit: float, z_limit: float
-) -> Float[t.Tensor, "rays 2 xyz"]:
+) -> Float[t.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"]:
     """Generate 2D Rays from the Origin.
 
     This function creates rays emitted from the origin (0, 0, 0) in both y and z
@@ -42,12 +42,18 @@ def generate_rays_2d(
         t.linspace(y_limit, -y_limit, num_pixels_y),
         t.linspace(z_limit, -z_limit, num_pixels_z),
     )
-    return t.stack([source, direction], dim=1)
+    return einops.rearrange(
+        t.stack([source, direction], dim=1),
+        "(y z) p2 xyz -> y z p2 xyz",
+        y=num_pixels_y,
+        z=num_pixels_z,
+        p2=2,
+    )
 
 
 def compute_mesh_intersections(
-    triangles: Float[t.Tensor, "triangles 3 xyz"], rays: Float[t.Tensor, "rays 2 xyz"]
-) -> Float[t.Tensor, "rays"]:  # type: ignore[name-defined, unused-ignore]  # noqa: F821
+    triangles: Float[t.Tensor, "triangles 3 xyz"], rays: Float[t.Tensor, "*rays 2 xyz"]
+) -> Float[t.Tensor, "*rays"]:
     """Ray Tracing for Mesh Rendering.
 
     This function performs ray tracing to determine the closest intersection distance
@@ -63,6 +69,7 @@ def compute_mesh_intersections(
     device = t.device("cuda:0")
     triangles = triangles.to(device)
     rays = rays.to(device)
+    rays, rays_packed_shape = einops.pack([rays], "* p2 xyz")
 
     n_triangles = triangles.shape[0]
     n_rays = rays.shape[0]
@@ -95,6 +102,7 @@ def compute_mesh_intersections(
     )
     dist_s: Float[t.Tensor, "rays"] = seen_s.amin(-1)  # n_rays
     dist: Float[t.Tensor, "rays"] = dist_s / rays[:, 1].pow(2).sum(-1).sqrt()
+    (dist,) = einops.unpack(dist, rays_packed_shape, "*")
     return dist.cpu()
 
 
@@ -127,19 +135,18 @@ def perform_ray_tracing(
     Returns:
     - A tensor representing the intersection distances as a pixel grid.
     """
-    rays: Float[t.Tensor, "rays 2 xyz"] = generate_rays_2d(
+    rays: Float[t.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"] = generate_rays_2d(
         num_pixels_y, num_pixels_z, y_limit, z_limit
     )
     new_origin = t.zeros_like(rays)
-    new_origin[:, 0, :] = t.tensor([-2, 0, 0])
+    new_origin[..., 0, :] = t.tensor([-2, 0, 0])
     phi = t.Tensor([90 * 3.1415 / 180])
     c, s = t.cos(phi), t.sin(phi)
     rot = t.tensor([[[[c, 0, s], [0, 1, 0], [-s, 0, c]]]])
-    rays_dist: Float[t.Tensor, "rays"] = compute_mesh_intersections(
-        triangles, ((rays + new_origin) @ rot)[0]
-    )
-    screen: Float[t.Tensor, "y z"] = einops.rearrange(
-        rays_dist, "(y z) -> y z", y=num_pixels_y, z=num_pixels_z
+    new_rays = (rays + new_origin) @ rot
+    assert rays.shape == new_rays.shape
+    screen: Float[t.Tensor, "{num_pixels_y} {num_pixels_z}"] = (
+        compute_mesh_intersections(triangles, new_rays)
     )
     return screen
 
