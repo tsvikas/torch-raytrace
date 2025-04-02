@@ -16,20 +16,7 @@ authors = [
 ]
 keywords = []
 classifiers = [
-  # TODO: remove when ready to upload to pypi
   "Private :: Do Not Upload",
-  # TODO: choose more classifiers from the list in https://pypi.org/classifiers/
-  # i.e.: Environment, Framework, Intended Audience, Topic
-  # TODO: update the development status
-  "Development Status :: 1 - Planning",
-  # target os
-  "Operating System :: OS Independent",
-  # python versions
-  "Programming Language :: Python",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.13",
-  "Typing :: Typed",
 ]
 dependencies = [
   "loguru >=0",
@@ -47,12 +34,6 @@ source = "https://github.com/tsvikas/torch-raytrace"
 # documentation = "https://torch-raytrace.readthedocs.io"
 # issues = "https://github.com/tsvikas/torch-raytrace/issues"
 # funding = "https://github.com/sponsors/tsvikas"
-
-[project.scripts]
-# torch-raytrace = "raytrace.cli:app"
-
-[project.gui-scripts]
-# torch-raytrace = "raytrace.gui:app.run"
 
 
 [tool.uv]
