@@ -17,7 +17,7 @@ Ray tracing from scratch with PyTorch for educational and illustrative purposes.
 Install the package using pip, or with a dependency manager like uv:
 
 ```bash
-pip install torch-raytrace
+pip install git+https://github.com/tsvikas/torch-raytrace.git
 ```
 
 and import the package in your code:
