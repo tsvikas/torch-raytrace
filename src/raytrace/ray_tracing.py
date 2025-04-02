@@ -145,7 +145,7 @@ def perform_ray_tracing(
     )
     new_origin = t.zeros_like(rays)
     new_origin[..., 0, :] = t.tensor([-2, 0, 0], device=triangles.device)
-    phi = t.tensor([90 * 3.1415 / 180], device=triangles.device)
+    phi = t.tensor([0 * 3.1415 / 180], device=triangles.device)
     c, s = t.cos(phi), t.sin(phi)
     rot = t.tensor([[[[c, 0, s], [0, 1, 0], [-s, 0, c]]]], device=triangles.device)
     new_rays = (rays + new_origin) @ rot
