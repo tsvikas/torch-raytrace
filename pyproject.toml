@@ -72,9 +72,9 @@ test = [
   ## fixtures
   # "freezegun ~=1.0",
   # "hypothesis ~=6.0",
-  "pytest-datadir ~=1.0",
+  # "pytest-datadir ~=1.0",
   # "pytest-mock ~=3.3",
-  # "pytest-regressions ~=2.0",
+  "pytest-regressions ~=2.0",
   "typeguard~=2.0",
 ]
 # docs = []

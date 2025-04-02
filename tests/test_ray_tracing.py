@@ -1,7 +1,6 @@
-from pathlib import Path
-
 import einops
 import torch
+from pytest_regressions.ndarrays_regression import NDArraysRegressionFixture
 from torch.testing import assert_close
 
 from raytrace import assets, ray_tracing
@@ -42,15 +41,11 @@ def test_rays_2d() -> None:
     )
 
 
-def test_raytrace(datadir: Path) -> None:
-    expected_fn = datadir.joinpath("pikachu_2d.pt")
-    expected = torch.load(expected_fn)
-
+def test_raytrace(ndarrays_regression: NDArraysRegressionFixture) -> None:
     triangles = assets.load("pikachu")
-    num_pixels_y = num_pixels_z = 200  # 120
+    num_pixels_y = num_pixels_z = 200
     y_limit = z_limit = 1
     screen = ray_tracing.perform_ray_tracing(
         triangles, num_pixels_y, num_pixels_z, y_limit, z_limit
     )
-
-    assert_close(screen.cpu(), expected)
+    ndarrays_regression.check({"screen": screen.numpy()})

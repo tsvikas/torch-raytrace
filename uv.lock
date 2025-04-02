@@ -1594,6 +1594,20 @@ wheels = [
 ]
 
 [[package]]
+name = "pytest-regressions"
+version = "2.7.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+    { name = "pytest-datadir" },
+    { name = "pyyaml" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/07/40/2e233d49a86e2ba88325bcfdcad77fa56b05ba7ca61b58bc0212330e560a/pytest_regressions-2.7.0.tar.gz", hash = "sha256:4c30064e0923929012c94f5d6f35205be06fd8709c7f0dba0228e05c460af05e", size = 116270 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6d/83/3eaf30c06a1cf8bb58b1e5dba0345d1c747b720e889cbae81750c7659e9f/pytest_regressions-2.7.0-py3-none-any.whl", hash = "sha256:69f5e3f03493cf0ef84d96d23e50a546617c198b1d7746f2e2b9e441cbab4847", size = 24497 },
+]
+
+[[package]]
 name = "pytest-reverse"
 version = "1.8.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1739,7 +1753,7 @@ test = [
     { name = "pytest-benchmark" },
     { name = "pytest-clarity" },
     { name = "pytest-cov" },
-    { name = "pytest-datadir" },
+    { name = "pytest-regressions" },
     { name = "pytest-reverse" },
     { name = "pytest-xdist", extra = ["psutil"] },
     { name = "typeguard" },
@@ -1774,7 +1788,7 @@ test = [
     { name = "pytest-benchmark", specifier = "~=5.0" },
     { name = "pytest-clarity", specifier = "~=1.0" },
     { name = "pytest-cov", specifier = "~=6.0" },
-    { name = "pytest-datadir", specifier = "~=1.0" },
+    { name = "pytest-regressions", specifier = "~=2.0" },
     { name = "pytest-reverse", specifier = "~=1.0" },
     { name = "pytest-xdist", extras = ["psutil"], specifier = "~=3.0" },
     { name = "typeguard", specifier = "~=2.0" },
