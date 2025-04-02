@@ -13,12 +13,13 @@ Key Concepts:
 
 import einops
 import torch as t
+from jaxtyping import Bool, Float
 from torch import linalg
 
 
 def generate_rays_2d(
-    num_pixels_y: int, num_pixels_z, y_limit: float, z_limit: float
-) -> t.Tensor:
+    num_pixels_y: int, num_pixels_z: int, y_limit: float, z_limit: float
+) -> Float[t.Tensor, "rays 2 xyz"]:
     """Generate 2D Rays from the Origin.
 
     This function creates rays emitted from the origin (0, 0, 0) in both y and z
@@ -36,8 +37,8 @@ def generate_rays_2d(
     """
     source = einops.repeat(
         t.tensor([0, 0, 0], dtype=t.float),
-        "xyz -> pixels xyz",
-        pixels=num_pixels_y * num_pixels_z,
+        "xyz -> rays xyz",
+        rays=num_pixels_y * num_pixels_z,
     )
     direction = t.cartesian_prod(
         t.tensor([1.0]),
@@ -47,7 +48,9 @@ def generate_rays_2d(
     return t.stack([source, direction], dim=1)
 
 
-def compute_mesh_intersections(triangles: t.Tensor, rays: t.Tensor) -> t.Tensor:
+def compute_mesh_intersections(
+    triangles: Float[t.Tensor, "triangles 3 xyz"], rays: Float[t.Tensor, "rays 2 xyz"]
+) -> Float[t.Tensor, "rays"]:
     """Ray Tracing for Mesh Rendering.
 
     This function performs ray tracing to determine the closest intersection distance
@@ -56,11 +59,11 @@ def compute_mesh_intersections(triangles: t.Tensor, rays: t.Tensor) -> t.Tensor:
     Parameters:
     - triangles (Tensor): Shape (n_triangles, points=3, dims=3) representing the
     vertices of each triangle.
-    - rays (Tensor): Shape (n_pixels, points=2, dims=3) representing the origin and
+    - rays (Tensor): Shape (n_rays, points=2, dims=3) representing the origin and
     direction of each ray.
 
     Returns:
-    - A tensor of shape (n_pixels,) indicating the distance to the closest intersecting
+    - A tensor of shape (n_rays,) indicating the distance to the closest intersecting
     triangle or infinity if no intersection occurs.
 
     Process:
@@ -78,42 +81,50 @@ def compute_mesh_intersections(triangles: t.Tensor, rays: t.Tensor) -> t.Tensor:
     rays = rays.to(device)
 
     n_triangles = triangles.shape[0]
-    n_pixels = rays.shape[0]
+    n_rays = rays.shape[0]
     assert triangles.shape == (n_triangles, 3, 3)
-    assert rays.shape == (n_pixels, 2, 3)
-    # create (n_pixels, xyz) tensors:
+    assert rays.shape == (n_rays, 2, 3)
+
+    # create (n_rays, xyz) tensors:
     As, Bs, Cs = einops.repeat(  # noqa: N806
         triangles,
-        "n_triangles p xyz -> p n_pixels n_triangles xyz",
-        n_pixels=n_pixels,
-        xyz=3,
+        "triangles p3 xyz -> p3 rays triangles xyz",
+        rays=n_rays,
     )
     Os, Ds = einops.repeat(  # noqa: N806
-        rays, "n_pixels p xyz -> p n_pixels n_triangles xyz", n_triangles=n_triangles
+        rays, "rays p2 xyz -> p2 rays triangles xyz", triangles=n_triangles
     )
     # solve
-    left = t.stack([-Ds, Bs - As, Cs - As], dim=-1)  # n_pixels n_triangles xyz suv
-    right = Os - As  # n_pixels n_triangles xyz
+    left: Float[t.Tensor, "rays triangles xyz suv"] = t.stack(
+        [-Ds, Bs - As, Cs - As], dim=-1
+    )
+    right: Float[t.Tensor, "rays triangles xyz"] = Os - As
 
     threshold = 1e-5
-    irreversible = linalg.det(left).abs() < threshold  # n_pixels n_triangles
+    irreversible: Float[t.Tensor, "rays triangles"] = linalg.det(left).abs() < threshold
     left[irreversible] = t.eye(left.shape[-1], device=device)
 
-    solve = linalg.solve(left, right)
-    s, u, v = einops.rearrange(
-        solve, "n_pixels n_triangles suv -> suv n_pixels n_triangles"
-    )
+    solve: Float[t.Tensor, "rays triangles suv"] = linalg.solve(left, right)
+    s, u, v = einops.rearrange(solve, "rays triangles suv -> suv rays triangles")
 
-    seen = (
+    seen: Bool[t.Tensor, "rays triangles"] = (
         (u > 0) & (v > 0) & (u + v < 1) & (s > 0) & ~irreversible
-    )  # n_pixels n_triangles
-    seen_s = s.where(seen, t.tensor(float("inf"), device=device))
-    dist_s = seen_s.amin(-1)  # n_pixels
-    dist = dist_s / rays[:, 1].pow(2).sum(-1).sqrt()
+    )
+    seen_s: Float[t.Tensor, "rays triangles"] = s.where(
+        seen, t.tensor(float("inf"), device=device)
+    )
+    dist_s: Float[t.Tensor, "rays"] = seen_s.amin(-1)  # n_rays
+    dist: Float[t.Tensor, "rays"] = dist_s / rays[:, 1].pow(2).sum(-1).sqrt()
     return dist.cpu()
 
 
-def perform_ray_tracing(triangles, num_pixels_y, num_pixels_z, y_limit, z_limit):
+def perform_ray_tracing(
+    triangles: Float[t.Tensor, "triangles 3 xyz"],
+    num_pixels_y: int,
+    num_pixels_z: int,
+    y_limit: float,
+    z_limit: float,
+) -> Float[t.Tensor, "{num_pixels_y} {num_pixels_z}"]:
     """Perform Ray Tracing on a Mesh.
 
     This function executes ray tracing to render a 2D image of a mesh composed of
@@ -136,23 +147,28 @@ def perform_ray_tracing(triangles, num_pixels_y, num_pixels_z, y_limit, z_limit)
     Returns:
     - A tensor representing the intersection distances as a pixel grid.
     """
-    rays = generate_rays_2d(
+    rays: Float[t.Tensor, "rays 2 xyz"] = generate_rays_2d(
         num_pixels_y, num_pixels_z, y_limit, z_limit
-    )  # pixels point xyz
+    )
     new_origin = t.zeros_like(rays)
     new_origin[:, 0, :] = t.tensor([-2, 0, 0])
     phi = t.Tensor([90 * 3.1415 / 180])
     c, s = t.cos(phi), t.sin(phi)
     rot = t.tensor([[[[c, 0, s], [0, 1, 0], [-s, 0, c]]]])
-    screen = compute_mesh_intersections(triangles, ((rays + new_origin) @ rot)[0])
-    return screen.reshape((num_pixels_y, num_pixels_z))
+    rays_dist: Float[t.Tensor, "rays"] = compute_mesh_intersections(
+        triangles, ((rays + new_origin) @ rot)[0]
+    )
+    screen: Float[t.Tensor, "y z"] = einops.rearrange(
+        rays_dist, "(y z) -> y z", y=num_pixels_y, z=num_pixels_z
+    )
+    return screen
 
 
 if __name__ == "__main__":
     import assets  # type: ignore[import-not-found]
     import matplotlib.pyplot as plt
 
-    triangles = assets.load("pikachu")
+    triangles: Float[t.Tensor, "triangles 3 xyz"] = assets.load("pikachu")
     num_pixels_y = num_pixels_z = 200  # 120
     y_limit = z_limit = 1
     screen = perform_ray_tracing(

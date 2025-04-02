@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import einops
 import torch
 from torch.testing import assert_close
@@ -5,7 +7,7 @@ from torch.testing import assert_close
 from raytrace import assets, ray_tracing
 
 
-def test_rays_2d():
+def test_rays_2d() -> None:
     n_y = 10
     n_z = 10
     y_limit = 0.3
@@ -40,7 +42,7 @@ def test_rays_2d():
     )
 
 
-def test_raytrace(datadir):
+def test_raytrace(datadir: Path) -> None:
     expected_fn = datadir.joinpath("pikachu_2d.pt")
     expected = torch.load(expected_fn)
 
