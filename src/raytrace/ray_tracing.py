@@ -23,6 +23,7 @@ def generate_rays_2d(  # noqa: PLR0913
     z_limit: float,
     x0: float = 0,
     x1: float = 1,
+    device: str | t.device = "cuda",
 ) -> Float[t.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"]:
     """Generate 2D Rays from the Origin.
 
@@ -37,7 +38,7 @@ def generate_rays_2d(  # noqa: PLR0913
 
     Returns: the origin and next-point of each ray.
     """
-    rays = t.zeros((2, 3, num_pixels_y, num_pixels_z), dtype=t.float32)
+    rays = t.zeros((2, 3, num_pixels_y, num_pixels_z), dtype=t.float32, device=device)
     rays[0, 0] = x0
     rays[1, 0] = x1
     rays[1, 1] = einops.repeat(
@@ -73,9 +74,6 @@ def compute_mesh_intersections(
     Returns:
     the distance to the closest intersecting triangle or infinity.
     """
-    device = t.device("cuda:0")
-    triangles = triangles.to(device)
-    rays = rays.to(device)
     rays, rays_packed_shape = einops.pack([rays], "* p2 xyz")
 
     n_triangles = triangles.shape[0]
@@ -96,7 +94,7 @@ def compute_mesh_intersections(
 
     threshold = 1e-5
     irreversible: Float[t.Tensor, "rays triangles"] = linalg.det(left).abs() < threshold
-    left[irreversible] = t.eye(left.shape[-1], device=device)
+    left[irreversible] = t.eye(left.shape[-1], device=left.device)
 
     solve: Float[t.Tensor, "rays triangles suv"] = linalg.solve(left, right)
     s, u, v = einops.rearrange(solve, "rays triangles suv -> suv rays triangles")
@@ -105,7 +103,7 @@ def compute_mesh_intersections(
         (u > 0) & (v > 0) & (u + v < 1) & (s > 0) & ~irreversible
     )
     seen_s: Float[t.Tensor, "rays triangles"] = s.where(
-        seen, t.tensor(float("inf"), device=device)
+        seen, t.tensor(float("inf"), device=seen.device)
     )
     dist_s: Float[t.Tensor, "rays"] = seen_s.amin(-1)  # n_rays
     dist: Float[t.Tensor, "rays"] = dist_s / rays[:, 1].pow(2).sum(-1).sqrt()
@@ -143,13 +141,13 @@ def perform_ray_tracing(
     - A tensor representing the intersection distances as a pixel grid.
     """
     rays: Float[t.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"] = generate_rays_2d(
-        num_pixels_y, num_pixels_z, y_limit, z_limit
+        num_pixels_y, num_pixels_z, y_limit, z_limit, device=triangles.device
     )
     new_origin = t.zeros_like(rays)
-    new_origin[..., 0, :] = t.tensor([-2, 0, 0])
-    phi = t.Tensor([90 * 3.1415 / 180])
+    new_origin[..., 0, :] = t.tensor([-2, 0, 0], device=triangles.device)
+    phi = t.tensor([90 * 3.1415 / 180], device=triangles.device)
     c, s = t.cos(phi), t.sin(phi)
-    rot = t.tensor([[[[c, 0, s], [0, 1, 0], [-s, 0, c]]]])
+    rot = t.tensor([[[[c, 0, s], [0, 1, 0], [-s, 0, c]]]], device=triangles.device)
     new_rays = (rays + new_origin) @ rot
     assert rays.shape == new_rays.shape
     screen: Float[t.Tensor, "{num_pixels_y} {num_pixels_z}"] = (

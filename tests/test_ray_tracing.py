@@ -12,7 +12,7 @@ def test_rays_2d() -> None:
     n_z = 10
     y_limit = 0.3
     z_limit = 0.3
-    rays_2d = ray_tracing.generate_rays_2d(n_y, n_z, y_limit, z_limit)
+    rays_2d = ray_tracing.generate_rays_2d(n_y, n_z, y_limit, z_limit).cpu()
     assert rays_2d.shape == (n_y, n_z, 2, 3)
     assert_close(rays_2d[:, :, 0, :], torch.zeros(n_y, n_z, 3))
     end_x, end_y, end_z = einops.rearrange(
@@ -53,4 +53,4 @@ def test_raytrace(datadir: Path) -> None:
         triangles, num_pixels_y, num_pixels_z, y_limit, z_limit
     )
 
-    assert_close(screen, expected)
+    assert_close(screen.cpu(), expected)
