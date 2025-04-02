@@ -76,20 +76,21 @@ def compute_mesh_intersections(triangles: t.Tensor, rays: t.Tensor) -> t.Tensor:
     assert triangles.shape == (n_triangles, 3, 3)
     assert rays.shape == (n_pixels, 2, 3)
     # create (n_pixels, xyz) tensors:
-    As, Bs, Cs = einops.repeat(
+    As, Bs, Cs = einops.repeat(  # noqa: N806
         triangles,
         "n_triangles p xyz -> p n_pixels n_triangles xyz",
         n_pixels=n_pixels,
         xyz=3,
     )
-    Os, Ds = einops.repeat(
+    Os, Ds = einops.repeat(  # noqa: N806
         rays, "n_pixels p xyz -> p n_pixels n_triangles xyz", n_triangles=n_triangles
     )
     # solve
     left = t.stack([-Ds, Bs - As, Cs - As], dim=-1)  # n_pixels n_triangles xyz suv
     right = Os - As  # n_pixels n_triangles xyz
 
-    irreversible = linalg.det(left).abs() < 1e-8  # n_pixels n_triangles
+    threshold = 1e-5
+    irreversible = linalg.det(left).abs() < threshold  # n_pixels n_triangles
     left[irreversible] = t.eye(left.shape[-1], device=device)
 
     solve = linalg.solve(left, right)
@@ -100,7 +101,6 @@ def compute_mesh_intersections(triangles: t.Tensor, rays: t.Tensor) -> t.Tensor:
     seen = (
         (u > 0) & (v > 0) & (u + v < 1) & (s > 0) & ~irreversible
     )  # n_pixels n_triangles
-    # return seen.any(-1).int()  # to return a shadow
     seen_s = s.where(seen, t.tensor(float("inf"), device=device))
     dist_s = seen_s.amin(-1)  # n_pixels
     dist = dist_s / rays[:, 1].pow(2).sum(-1).sqrt()
