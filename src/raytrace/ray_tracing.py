@@ -107,7 +107,7 @@ def compute_mesh_intersections(
     )
     dist: Float[t.Tensor, "rays"] = seen_s.amin(-1)
     (dist,) = einops.unpack(dist, rays_packed_shape, "*")
-    return dist.cpu()
+    return dist
 
 
 def perform_ray_tracing(  # noqa: PLR0913
@@ -168,6 +168,6 @@ if __name__ == "__main__":
     x1 = 0
     screen = perform_ray_tracing(
         triangles, num_pixels_y, num_pixels_z, y_limit, z_limit, x0, x1
-    )
+    ).cpu()
     plt.imshow(screen, cmap="cividis_r")
     plt.show()

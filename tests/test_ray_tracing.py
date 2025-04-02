@@ -51,5 +51,5 @@ def test_raytrace(ndarrays_regression: NDArraysRegressionFixture) -> None:
     x1 = 1
     screen = ray_tracing.perform_ray_tracing(
         triangles, num_pixels_y, num_pixels_z, y_limit, z_limit, x0, x1
-    )
+    ).cpu()
     ndarrays_regression.check({"screen": screen.numpy()})
