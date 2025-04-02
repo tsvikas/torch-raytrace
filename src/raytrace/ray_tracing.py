@@ -16,39 +16,46 @@ from jaxtyping import Bool, Float
 from torch import linalg
 
 
-def generate_rays_2d(
-    num_pixels_y: int, num_pixels_z: int, y_limit: float, z_limit: float
+def generate_rays_2d(  # noqa: PLR0913
+    num_pixels_y: int,
+    num_pixels_z: int,
+    y_limit: float,
+    z_limit: float,
+    x0: float = 0,
+    x1: float = 1,
 ) -> Float[t.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"]:
     """Generate 2D Rays from the Origin.
 
-    This function creates rays emitted from the origin (0, 0, 0) in both y and z
+    This function creates rays emitted from the origin (x0, 0, 0) in both x and y
     dimensions, forming a pyramid shape with the tip at the origin.
 
     Parameters:
     num_pixels_y: Number of pixels in the y dimension.
     num_pixels_z: Number of pixels in the z dimension.
-    y_limit: At x=1, rays extend from -y_limit to +y_limit.
-    z_limit: At x=1, rays extend from -z_limit to +z_limit.
+    y_limit: At x=x1, rays extend from -y_limit to +y_limit.
+    z_limit: At x=x1, rays extend from -z_limit to +z_limit.
 
     Returns: the origin and next-point of each ray.
     """
-    source = einops.repeat(
-        t.tensor([0, 0, 0], dtype=t.float),
-        "xyz -> rays xyz",
-        rays=num_pixels_y * num_pixels_z,
-    )
-    direction = t.cartesian_prod(
-        t.tensor([1.0]),
+    rays = t.zeros((2, 3, num_pixels_y, num_pixels_z), dtype=t.float32)
+    rays[0, 0] = x0
+    rays[1, 0] = x1
+    rays[1, 1] = einops.repeat(
         t.linspace(y_limit, -y_limit, num_pixels_y),
-        t.linspace(z_limit, -z_limit, num_pixels_z),
-    )
-    return einops.rearrange(
-        t.stack([source, direction], dim=1),
-        "(y z) p2 xyz -> y z p2 xyz",
+        "y -> y z",
         y=num_pixels_y,
         z=num_pixels_z,
-        p2=2,
     )
+    rays[1, 2] = einops.repeat(
+        t.linspace(z_limit, -z_limit, num_pixels_z),
+        "z -> y z",
+        y=num_pixels_y,
+        z=num_pixels_z,
+    )
+    rays = einops.rearrange(
+        rays, "p2 xyz y z -> y z p2 xyz", y=num_pixels_y, z=num_pixels_z, p2=2, xyz=3
+    )
+    return rays
 
 
 def compute_mesh_intersections(
