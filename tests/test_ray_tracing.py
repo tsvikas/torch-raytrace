@@ -45,16 +45,12 @@ def test_rays_2d() -> None:
 
 def test_raytrace(ndarrays_regression: NDArraysRegressionFixture) -> None:
     triangles = assets.load("pikachu")
-    num_pixels_y = num_pixels_z = 200
-    y_limit = z_limit = 1
-    x0 = 0
-    x1 = 1
+    num_pixels_y = num_pixels_z = 100
+    y_limit = z_limit = 2
+    x0 = -10
+    x1 = 10
     rays = ray_tracing.generate_rays_2d(
         num_pixels_y, num_pixels_z, y_limit, z_limit, x0, x1, device=triangles.device
     )
-    new_origin = torch.zeros_like(rays)
-    new_origin[..., 0, :] = torch.tensor([-2, 0, 0], device=triangles.device)
-    rays = rays + new_origin
     screen = ray_tracing.compute_mesh_intersections(triangles, rays)
-
     ndarrays_regression.check({"screen": screen.cpu().numpy()})
