@@ -1,4 +1,4 @@
-"""torch-raytrace: Ray tracing from scratch with PyTorch for educational and illustrative purposes.
+"""torch-raytrace: Ray tracing from scratch with PyTorch.
 
 Copyright (c) 2025 Tsvika Shapira. All rights reserved.
 """
