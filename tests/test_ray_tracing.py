@@ -49,7 +49,12 @@ def test_raytrace(ndarrays_regression: NDArraysRegressionFixture) -> None:
     y_limit = z_limit = 1
     x0 = 0
     x1 = 1
-    screen = ray_tracing.perform_ray_tracing(
-        triangles, num_pixels_y, num_pixels_z, y_limit, z_limit, x0, x1
-    ).cpu()
-    ndarrays_regression.check({"screen": screen.numpy()})
+    rays = ray_tracing.generate_rays_2d(
+        num_pixels_y, num_pixels_z, y_limit, z_limit, x0, x1, device=triangles.device
+    )
+    new_origin = torch.zeros_like(rays)
+    new_origin[..., 0, :] = torch.tensor([-2, 0, 0], device=triangles.device)
+    rays = rays + new_origin
+    screen = ray_tracing.compute_mesh_intersections(triangles, rays)
+
+    ndarrays_regression.check({"screen": screen.cpu().numpy()})
