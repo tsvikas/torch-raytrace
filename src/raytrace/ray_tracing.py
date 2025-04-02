@@ -21,8 +21,8 @@ def generate_rays_2d(  # noqa: PLR0913
     num_pixels_z: int,
     y_limit: float,
     z_limit: float,
-    x0: float = 0,
-    x1: float = 1,
+    x0: float,
+    x1: float,
     device: str | t.device = "cuda",
 ) -> Float[t.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"]:
     """Generate 2D Rays from the Origin.
@@ -111,12 +111,14 @@ def compute_mesh_intersections(
     return dist.cpu()
 
 
-def perform_ray_tracing(
+def perform_ray_tracing(  # noqa: PLR0913
     triangles: Float[t.Tensor, "triangles 3 xyz"],
     num_pixels_y: int,
     num_pixels_z: int,
     y_limit: float,
     z_limit: float,
+    x0: float = -1,
+    x1: float = 0,
 ) -> Float[t.Tensor, "{num_pixels_y} {num_pixels_z}"]:
     """Perform Ray Tracing on a Mesh.
 
@@ -141,7 +143,7 @@ def perform_ray_tracing(
     - A tensor representing the intersection distances as a pixel grid.
     """
     rays: Float[t.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"] = generate_rays_2d(
-        num_pixels_y, num_pixels_z, y_limit, z_limit, device=triangles.device
+        num_pixels_y, num_pixels_z, y_limit, z_limit, x0, x1, device=triangles.device
     )
     new_origin = t.zeros_like(rays)
     new_origin[..., 0, :] = t.tensor([-2, 0, 0], device=triangles.device)
@@ -163,8 +165,10 @@ if __name__ == "__main__":
     triangles: Float[t.Tensor, "triangles 3 xyz"] = assets.load("pikachu")
     num_pixels_y = num_pixels_z = 200  # 120
     y_limit = z_limit = 1
+    x0 = -1
+    x1 = 0
     screen = perform_ray_tracing(
-        triangles, num_pixels_y, num_pixels_z, y_limit, z_limit
+        triangles, num_pixels_y, num_pixels_z, y_limit, z_limit, x0, x1
     )
     plt.imshow(screen, cmap="cividis_r")
     plt.show()
