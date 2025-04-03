@@ -5,6 +5,8 @@ from torch.testing import assert_close
 
 from raytrace import assets, ray_tracing
 
+DEVICE = "cpu"
+
 
 def test_rays_2d() -> None:
     n_y = 10
@@ -13,7 +15,9 @@ def test_rays_2d() -> None:
     z_limit = 0.3
     x0 = 0
     x1 = 1
-    rays_2d = ray_tracing.generate_rays_2d(n_y, n_z, y_limit, z_limit, x0, x1).cpu()
+    rays_2d = ray_tracing.generate_rays_2d(
+        n_y, n_z, y_limit, z_limit, x0, x1, device=DEVICE
+    ).cpu()
     assert rays_2d.shape == (n_y, n_z, 2, 3)
     assert_close(rays_2d[:, :, 0, :], torch.zeros(n_y, n_z, 3))
     end_x, end_y, end_z = einops.rearrange(
@@ -44,7 +48,7 @@ def test_rays_2d() -> None:
 
 
 def test_raytrace(ndarrays_regression: NDArraysRegressionFixture) -> None:
-    triangles = assets.load("pikachu")
+    triangles = assets.load("pikachu", device=DEVICE)
     num_pixels_y = num_pixels_z = 100
     y_limit = z_limit = 2
     x0 = -10
@@ -57,7 +61,7 @@ def test_raytrace(ndarrays_regression: NDArraysRegressionFixture) -> None:
 
 
 def test_raytrace_translation() -> None:
-    triangles = assets.load("pikachu")
+    triangles = assets.load("pikachu", device=DEVICE)
     num_pixels_y = num_pixels_z = 30
     y_limit = z_limit = 2
     x0 = -10
@@ -74,7 +78,7 @@ def test_raytrace_translation() -> None:
 
 
 def test_raytrace_rotation() -> None:
-    triangles = assets.load("pikachu")
+    triangles = assets.load("pikachu", device=DEVICE)
     num_pixels_y = num_pixels_z = 30
     y_limit = z_limit = 2
     x0 = -10
