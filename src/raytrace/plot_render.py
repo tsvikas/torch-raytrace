@@ -160,18 +160,18 @@ def plot_2d(
 
 def plot_render(
     axis: Literal["yz", "zx", "xy"],
-    rays: Float[torch.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"],
+    rays: Float[torch.Tensor, "y z 2 xyz"],
     triangles: Float[torch.Tensor, "triangles 3 xyz"],
-    screen: Float[torch.Tensor, "{num_pixels_y} {num_pixels_z}"],
+    screen: Float[torch.Tensor, "y z"],
 ) -> None:
     """Plot rays, triangles, and screen."""
     num_pixels_y, num_pixels_z, _p2, _xyz = rays.shape
     if "x" not in axis:
-        _x1, y_limit, z_limit = rays[0, 0, 1].cpu()
+        _x1, y_limit, z_limit = rays[0, 0, 1].tolist()
     elif "y" not in axis:
-        z_limit, _x1, y_limit = rays[0, 0, 1].cpu()
+        z_limit, _x1, y_limit = rays[0, 0, 1].tolist()
     elif "z" not in axis:
-        y_limit, z_limit, _x1 = rays[0, 0, 1].cpu()
+        y_limit, z_limit, _x1 = rays[0, 0, 1].tolist()
     else:
         raise ValueError(f"axis {axis} not supported")
 
@@ -189,12 +189,12 @@ def plot_render(
         extent=(z_limit, -z_limit, -y_limit, y_limit),
         axis=axis,
     )
-    plt.show()
 
 
 def main() -> None:
     """Load and plot pikachu."""
     plot_render(*render_pikachu())
+    plt.show()
 
 
 def pikachu_side(output_fn: Path | None = None) -> None:
