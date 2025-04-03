@@ -191,12 +191,6 @@ def plot_render(
     )
 
 
-def main() -> None:
-    """Load and plot pikachu."""
-    plot_render(*render_pikachu())
-    plt.show()
-
-
 def pikachu_side(num_pixels_yz: int = 300, output_fn: Path | None = None) -> None:
     """Render an image from side view, to use for the readme."""
     yz_limit: float = 3.5
@@ -228,4 +222,5 @@ def pikachu_side(num_pixels_yz: int = 300, output_fn: Path | None = None) -> Non
 
 
 if __name__ == "__main__":
-    main()
+    plot_render(*render_pikachu())
+    plt.show()
