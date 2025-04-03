@@ -24,6 +24,9 @@ and import the package in your code:
 
 ```python
 import raytrace
+
+axis, rays, triangles, screen = raytrace.plot_render.render_pikachu()
+raytrace.plot_render.plot_render(axis, rays, triangles, screen)
 ```
 
 ## Development
