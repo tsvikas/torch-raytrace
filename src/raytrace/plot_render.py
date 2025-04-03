@@ -191,20 +191,23 @@ def plot_render(
     )
 
 
-def pikachu_side(num_pixels_yz: int = 300, output_fn: Path | None = None) -> None:
+def pikachu_side(
+    num_pixels_yz: int = 300,
+    output_fn: Path | None = None,
+    device: str | torch.device = "cuda",
+) -> None:
     """Render an image from side view, to use for the readme."""
     yz_limit: float = 3.5
     x0: float = -5
     x1: float = 5
     axis: Literal["yz", "zx", "xy"] = "yz"
-    device: str | torch.device = "cuda"
 
     rays = generate_rays_2d(
         num_pixels_yz, num_pixels_yz, yz_limit, -yz_limit, x0, x1, axis, device=device
     )
     cq = 1 / 2**0.5
     sq = -1 / 2**0.5
-    rot = torch.tensor([[cq, 0, sq], [0, 1, 0], [-sq, 0, cq]], device="cuda")
+    rot = torch.tensor([[cq, 0, sq], [0, 1, 0], [-sq, 0, cq]], device=device)
     triangles = assets.load("pikachu", device=device)
     triangles = triangles @ rot
 
