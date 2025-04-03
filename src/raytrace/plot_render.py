@@ -36,6 +36,30 @@ def render_pikachu(
     )
 
 
+def render_snorlax(
+    num_pixels_yz: int = 200,
+    yz_limit: float = 100,
+    x0: float = -400,
+    x1: float = 100,
+    device: str | torch.device = "cuda",
+) -> tuple[
+    Float[torch.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"],
+    Float[torch.Tensor, "triangles 3 xyz"],
+    Float[torch.Tensor, "{num_pixels_y} {num_pixels_z}"],
+]:
+    """Load and render pikachu."""
+    return render_asset(
+        asset="snorlax",
+        num_pixels_y=num_pixels_yz,
+        num_pixels_z=num_pixels_yz,
+        y_limit=yz_limit,
+        z_limit=-yz_limit,
+        x0=x0,
+        x1=x1,
+        device=device,
+    )
+
+
 def render_asset(  # noqa: PLR0913
     asset: str,
     num_pixels_z: int,
