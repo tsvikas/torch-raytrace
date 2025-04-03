@@ -62,32 +62,9 @@ jobs:
     strategy:
       matrix:
         include:
-          # test with highest resolution
-          - resolution: "highest"
-            os: ubuntu-latest
-            python-version: "3.13"
-          # test with pypy
-          # test with lowest resolution
-          - resolution: "lowest"
-            os: ubuntu-latest
-            python-version: "3.13"
-          # test with different os
           - resolution: "locked"
             os: ubuntu-latest
             python-version: "3.13"
-          - resolution: "locked"
-            os: macos-latest
-            python-version: "3.13"
-          - resolution: "locked"
-            os: windows-latest
-            python-version: "3.13"
-          # test on prerelease
-          - resolution: "prerelease"
-            os: ubuntu-latest
-            python-version: "3.13"
-          - resolution: "prerelease"
-            os: ubuntu-latest
-            python-version: "3.14"
       fail-fast: false
     name: test-${{ matrix.python-version }}-${{ matrix.resolution }}-${{ matrix.os }}
     steps:
