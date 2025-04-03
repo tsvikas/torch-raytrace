@@ -29,6 +29,8 @@ axis, rays, triangles, screen = raytrace.plot_render.render_pikachu()
 raytrace.plot_render.plot_render(axis, rays, triangles, screen)
 ```
 
+![raytracing output](pikachu.png)
+
 ## Development
 
 ### Getting started
