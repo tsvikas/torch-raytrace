@@ -6,6 +6,7 @@ import einops
 import matplotlib.pyplot as plt
 import torch
 from jaxtyping import Float
+from matplotlib.axes import Axes
 
 from raytrace import assets
 from raytrace.ray_tracing import compute_mesh_intersections, generate_rays_2d
@@ -65,8 +66,8 @@ def render_asset(  # noqa: PLR0913
 def plot_3d(
     lines: Float[torch.Tensor, "lines p2 xyz"],
     points: Float[torch.Tensor, "points xyz"],
-    ax: plt.Axes | None = None,
-) -> plt.Axes:
+    ax: Axes | None = None,
+) -> Axes:
     """Plot line segments and points in 3D."""
     if ax is None:
         _fig, ax = plt.subplots(figsize=(10, 10), subplot_kw={"projection": "3d"})
@@ -87,9 +88,9 @@ def plot_3d(
 def plot_2d(
     screen: Float[torch.Tensor, "z y"],
     points: Float[torch.Tensor, "points xyz"],
-    ax: plt.Axes | None = None,
+    ax: Axes | None = None,
     extent: tuple[float, float, float, float] | None = None,
-) -> plt.Axes:
+) -> Axes:
     """Plot screen and points in 2D."""
     if ax is None:
         _fig, ax = plt.subplots(figsize=(10, 10))
