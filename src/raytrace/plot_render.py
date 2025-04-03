@@ -197,9 +197,8 @@ def main() -> None:
     plt.show()
 
 
-def pikachu_side(output_fn: Path | None = None) -> None:
+def pikachu_side(num_pixels_yz: int = 300, output_fn: Path | None = None) -> None:
     """Render an image from side view, to use for the readme."""
-    num_pixels_yz: int = 300
     yz_limit: float = 3.5
     x0: float = -5
     x1: float = 5
@@ -222,9 +221,10 @@ def pikachu_side(output_fn: Path | None = None) -> None:
 
     screen = compute_mesh_intersections(triangles, rays)
     ax = plot_2d(screen, axis=axis)
-    fig = ax.figure
-    assert isinstance(fig, Figure)
-    fig.savefig(output_fn)
+    if output_fn:
+        fig = ax.figure
+        assert isinstance(fig, Figure)
+        fig.savefig(output_fn)
 
 
 if __name__ == "__main__":
