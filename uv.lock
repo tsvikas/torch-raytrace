@@ -1731,6 +1731,7 @@ source = { editable = "." }
 dependencies = [
     { name = "einops" },
     { name = "jaxtyping" },
+    { name = "matplotlib" },
     { name = "torch" },
 ]
 
@@ -1742,7 +1743,6 @@ dev = [
     { name = "ipywidgets" },
     { name = "jupyterlab" },
     { name = "jupytext" },
-    { name = "matplotlib" },
     { name = "pre-commit" },
     { name = "ruff" },
     { name = "rust-just" },
@@ -1766,6 +1766,7 @@ typing = [
 requires-dist = [
     { name = "einops", specifier = ">=0.8" },
     { name = "jaxtyping", specifier = ">=0.3.1" },
+    { name = "matplotlib", specifier = ">=3.10.1" },
     { name = "torch", specifier = ">=2.6.0" },
 ]
 
@@ -1777,7 +1778,6 @@ dev = [
     { name = "ipywidgets", specifier = ">=8.1.5" },
     { name = "jupyterlab", specifier = ">=4.3.6" },
     { name = "jupytext", specifier = ">=1.16.7" },
-    { name = "matplotlib", specifier = ">=3.10.1" },
     { name = "pre-commit", specifier = "~=4.0" },
     { name = "ruff", specifier = "~=0.11.0" },
     { name = "rust-just", specifier = "~=1.0" },
