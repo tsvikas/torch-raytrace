@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 
 [project]
 dynamic = ["version"]
-name = "torch-raytrace"
+name = "raytrace"
 description = "Ray tracing from scratch with PyTorch for educational and illustrative purposes."
 license = "MIT"
 license-files = ["LICEN[CS]E.*"]
