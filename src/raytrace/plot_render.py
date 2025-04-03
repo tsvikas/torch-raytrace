@@ -98,7 +98,7 @@ def render_asset(
 
 def plot_3d(
     lines: Float[torch.Tensor, "lines p2 xyz"],
-    points: Float[torch.Tensor, "points xyz"],
+    points: Float[torch.Tensor, "points xyz"] | None = None,
     ax: Axes | None = None,
 ) -> Axes:
     """Plot line segments and points in 3D."""
@@ -109,8 +109,9 @@ def plot_3d(
     for line in lines:
         ax.plot(line[:, 2], line[:, 0], line[:, 1], c="k")
 
-    points = points.cpu()
-    ax.scatter(points[:, 2], points[:, 0], points[:, 1], c=points[:, 0])
+    if points is not None:
+        points = points.cpu()
+        ax.scatter(points[:, 2], points[:, 0], points[:, 1], c=points[:, 0])
     scale = torch.linspace(-10, 10, 100)
     ax.scatter(0, scale, 0, c=scale)
 
@@ -120,7 +121,7 @@ def plot_3d(
 
 def plot_2d(
     screen: Float[torch.Tensor, "z y"],
-    points: Float[torch.Tensor, "points xyz"],
+    points: Float[torch.Tensor, "points xyz"] | None = None,
     ax: Axes | None = None,
     extent: tuple[float, float, float, float] | None = None,
     axis: Literal["yz", "zx", "xy"] = "yz",
@@ -130,11 +131,13 @@ def plot_2d(
         _fig, ax = plt.subplots(figsize=(10, 10))
 
     ax.imshow(screen.cpu(), cmap="cividis_r", extent=extent)
-    points = points.cpu()
-    axis1 = ord(axis[0]) - ord("x")
-    axis2 = ord(axis[1]) - ord("x")
-    axis0 = 3 - axis1 - axis2
-    ax.scatter(points[:, axis2], points[:, axis1], c=points[:, axis0])
+
+    if points is not None:
+        points = points.cpu()
+        axis1 = ord(axis[0]) - ord("x")
+        axis2 = ord(axis[1]) - ord("x")
+        axis0 = 3 - axis1 - axis2
+        ax.scatter(points[:, axis2], points[:, axis1], c=points[:, axis0])
 
     ax.set(xlabel=axis[1], ylabel=axis[0])
     return ax
