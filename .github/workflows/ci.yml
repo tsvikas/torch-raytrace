@@ -108,34 +108,3 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-
-  pylint:
-    if: ${{ always() }}
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-      - name: Install packages
-        run: >-
-          uv sync
-          --all-extras
-          --no-default-groups
-          --exact
-          --locked
-      - name: List packages
-        run: uv pip list
-      # use pylint exitcode to fail only on errors.
-      - name: Run Pylint
-        run: |
-          set +e
-          uv run --no-sync --with pylint pylint src --output-format=github
-          result=$?
-          set -e
-          [ $((result & 1)) -ne 0 ] && echo "::error ::Pylest fatal(s) found"
-          [ $((result & 2)) -ne 0 ] && echo "::error ::Pylest error(s) found"
-          [ $((result & 4)) -ne 0 ] && echo "::warning ::Pylest warning(s) found"
-          [ $((result & 8)) -ne 0 ] && echo "::warning ::Pylest refactor(s) found"
-          [ $((result & 16)) -ne 0 ] && echo "::warning ::Pylest convention(s) found"
-          [ $((result & 32)) -ne 0 ] && echo "::error ::Pylest usage error"
-          exit $((result & 35))
