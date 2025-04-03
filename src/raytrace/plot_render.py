@@ -12,6 +12,10 @@ from raytrace.ray_tracing import compute_mesh_intersections, generate_rays_2d
 
 
 def render_pikachu(
+    num_pixels_yz: int = 200,
+    yz_limit: float = 2,
+    x0: float = -10,
+    x1: float = 10,
     device: str | torch.device = "cuda",
 ) -> tuple[
     Float[torch.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"],
@@ -19,24 +23,42 @@ def render_pikachu(
     Float[torch.Tensor, "{num_pixels_y} {num_pixels_z}"],
 ]:
     """Load and render pikachu."""
-    num_pixels_z = num_pixels_y = 200
-    y_limit = 2
-    z_limit = -2
-    x0 = -10
-    x1 = 10
+    return render_asset(
+        asset="pikachu",
+        num_pixels_y=num_pixels_yz,
+        num_pixels_z=num_pixels_yz,
+        y_limit=yz_limit,
+        z_limit=-yz_limit,
+        x0=x0,
+        x1=x1,
+        device=device,
+    )
 
+
+def render_asset(  # noqa: PLR0913
+    asset: str,
+    num_pixels_z: int,
+    num_pixels_y: int,
+    y_limit: float,
+    z_limit: float,
+    x0: float,
+    x1: float,
+    device: str | torch.device = "cuda",
+) -> tuple[
+    Float[torch.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"],
+    Float[torch.Tensor, "triangles 3 xyz"],
+    Float[torch.Tensor, "{num_pixels_y} {num_pixels_z}"],
+]:
+    """Load and render an asset."""
     rays = generate_rays_2d(
         num_pixels_y, num_pixels_z, y_limit, z_limit, x0, x1, device=device
     )
-
-    triangles = assets.load("pikachu", device=device)
+    triangles = assets.load(asset, device=device)
     bounding_box = torch.stack(
         [triangles.amin(dim=(0, 1)), triangles.amax(dim=(0, 1))], dim=-1
     ).cpu()
     print(f"{bounding_box=}")
-
     screen = compute_mesh_intersections(triangles, rays)
-
     return rays, triangles, screen
 
 
