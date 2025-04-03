@@ -11,7 +11,7 @@ Key Concepts:
 """
 
 import einops
-import torch as t
+import torch
 from jaxtyping import Bool, Float
 from torch import linalg
 
@@ -23,8 +23,8 @@ def generate_rays_2d(  # noqa: PLR0913
     z_limit: float,
     x0: float,
     x1: float,
-    device: str | t.device = "cuda",
-) -> Float[t.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"]:
+    device: str | torch.device = "cuda",
+) -> Float[torch.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"]:
     """Generate 2D Rays from the Origin.
 
     This function creates rays emitted from the origin (x0, 0, 0) in both x and y
@@ -38,17 +38,19 @@ def generate_rays_2d(  # noqa: PLR0913
 
     Returns: the origin and next-point of each ray.
     """
-    rays = t.zeros((2, 3, num_pixels_y, num_pixels_z), dtype=t.float32, device=device)
+    rays = torch.zeros(
+        (2, 3, num_pixels_y, num_pixels_z), dtype=torch.float32, device=device
+    )
     rays[0, 0] = x0
     rays[1, 0] = x1
     rays[1, 1] = einops.repeat(
-        t.linspace(y_limit, -y_limit, num_pixels_y),
+        torch.linspace(y_limit, -y_limit, num_pixels_y),
         "y -> y z",
         y=num_pixels_y,
         z=num_pixels_z,
     )
     rays[1, 2] = einops.repeat(
-        t.linspace(z_limit, -z_limit, num_pixels_z),
+        torch.linspace(z_limit, -z_limit, num_pixels_z),
         "z -> y z",
         y=num_pixels_y,
         z=num_pixels_z,
@@ -60,8 +62,9 @@ def generate_rays_2d(  # noqa: PLR0913
 
 
 def compute_mesh_intersections(
-    triangles: Float[t.Tensor, "triangles 3 xyz"], rays: Float[t.Tensor, "*rays 2 xyz"]
-) -> Float[t.Tensor, "*rays"]:
+    triangles: Float[torch.Tensor, "triangles 3 xyz"],
+    rays: Float[torch.Tensor, "*rays 2 xyz"],
+) -> Float[torch.Tensor, "*rays"]:
     """Ray Tracing for Mesh Rendering.
 
     This function performs ray tracing to determine the closest intersection distance
@@ -87,24 +90,26 @@ def compute_mesh_intersections(
         rays, "rays p2 xyz -> p2 rays triangles xyz", p2=2, xyz=3, triangles=n_triangles
     )
     # solve
-    left: Float[t.Tensor, "rays triangles xyz suv"] = t.stack(
+    left: Float[torch.Tensor, "rays triangles xyz suv"] = torch.stack(
         [Os - Ds, Bs - As, Cs - As], dim=-1
     )
-    right: Float[t.Tensor, "rays triangles xyz"] = Os - As
+    right: Float[torch.Tensor, "rays triangles xyz"] = Os - As
 
     threshold = 1e-5
-    irreversible: Float[t.Tensor, "rays triangles"] = linalg.det(left).abs() < threshold
-    left[irreversible] = t.eye(left.shape[-1], device=left.device)
+    irreversible: Float[torch.Tensor, "rays triangles"] = (
+        linalg.det(left).abs() < threshold
+    )
+    left[irreversible] = torch.eye(left.shape[-1], device=left.device)
 
-    solve: Float[t.Tensor, "rays triangles suv"] = linalg.solve(left, right)
+    solve: Float[torch.Tensor, "rays triangles suv"] = linalg.solve(left, right)
     s, u, v = einops.rearrange(solve, "rays triangles suv -> suv rays triangles")
 
-    seen: Bool[t.Tensor, "rays triangles"] = (
+    seen: Bool[torch.Tensor, "rays triangles"] = (
         (u > 0) & (v > 0) & (u + v < 1) & (s > 0) & ~irreversible
     )
-    seen_s: Float[t.Tensor, "rays triangles"] = s.where(
-        seen, t.tensor(float("inf"), device=seen.device)
+    seen_s: Float[torch.Tensor, "rays triangles"] = s.where(
+        seen, torch.tensor(float("inf"), device=seen.device)
     )
-    dist: Float[t.Tensor, "rays"] = seen_s.amin(-1)
+    dist: Float[torch.Tensor, "rays"] = seen_s.amin(-1)
     (dist,) = einops.unpack(dist, rays_packed_shape, "*")
     return dist

@@ -4,7 +4,7 @@
 
 import einops
 import matplotlib.pyplot as plt
-import torch as t
+import torch
 from jaxtyping import Float
 
 from raytrace import assets
@@ -12,11 +12,11 @@ from raytrace.ray_tracing import compute_mesh_intersections, generate_rays_2d
 
 
 def render_pikachu(
-    device: str | t.device = "cuda",
+    device: str | torch.device = "cuda",
 ) -> tuple[
-    Float[t.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"],
-    Float[t.Tensor, "triangles 3 xyz"],
-    Float[t.Tensor, "{num_pixels_y} {num_pixels_z}"],
+    Float[torch.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"],
+    Float[torch.Tensor, "triangles 3 xyz"],
+    Float[torch.Tensor, "{num_pixels_y} {num_pixels_z}"],
 ]:
     """Load and render pikachu."""
     num_pixels_z = num_pixels_y = 200
@@ -30,7 +30,7 @@ def render_pikachu(
     )
 
     triangles = assets.load("pikachu", device=device)
-    bounding_box = t.stack(
+    bounding_box = torch.stack(
         [triangles.amin(dim=(0, 1)), triangles.amax(dim=(0, 1))], dim=-1
     ).cpu()
     print(f"{bounding_box=}")
@@ -41,8 +41,8 @@ def render_pikachu(
 
 
 def plot_3d(
-    lines: Float[t.Tensor, "lines p2 xyz"],
-    points: Float[t.Tensor, "points xyz"],
+    lines: Float[torch.Tensor, "lines p2 xyz"],
+    points: Float[torch.Tensor, "points xyz"],
     ax: plt.Axes | None = None,
 ) -> plt.Axes:
     """Plot line segments and points in 3D."""
@@ -55,7 +55,7 @@ def plot_3d(
 
     points = points.cpu()
     ax.scatter(points[:, 2], points[:, 0], points[:, 1], c=points[:, 0])
-    scale = t.linspace(-10, 10, 100)
+    scale = torch.linspace(-10, 10, 100)
     ax.scatter(0, scale, 0, c=scale)
 
     ax.set(xlabel="z", ylabel="x", zlabel="y")
@@ -63,8 +63,8 @@ def plot_3d(
 
 
 def plot_2d(
-    screen: Float[t.Tensor, "z y"],
-    points: Float[t.Tensor, "points xyz"],
+    screen: Float[torch.Tensor, "z y"],
+    points: Float[torch.Tensor, "points xyz"],
     ax: plt.Axes | None = None,
     extent: tuple[float, float, float, float] | None = None,
 ) -> plt.Axes:
@@ -81,9 +81,9 @@ def plot_2d(
 
 
 def plot_render(
-    rays: Float[t.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"],
-    triangles: Float[t.Tensor, "triangles 3 xyz"],
-    screen: Float[t.Tensor, "{num_pixels_y} {num_pixels_z}"],
+    rays: Float[torch.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"],
+    triangles: Float[torch.Tensor, "triangles 3 xyz"],
+    screen: Float[torch.Tensor, "{num_pixels_y} {num_pixels_z}"],
 ) -> None:
     """Plot rays, triangles, and screen."""
     num_pixels_y, num_pixels_z, _p2, _xyz = rays.shape
