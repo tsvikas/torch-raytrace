@@ -71,3 +71,24 @@ def test_raytrace_translation() -> None:
         triangles + translation, rays + translation
     )
     assert_close(screen, screen_translated)
+
+
+def test_raytrace_rotation() -> None:
+    triangles = assets.load("pikachu")
+    num_pixels_y = num_pixels_z = 30
+    y_limit = z_limit = 2
+    x0 = -10
+    x1 = 10
+    rays = ray_tracing.generate_rays_2d(
+        num_pixels_y, num_pixels_z, y_limit, z_limit, x0, x1, device=triangles.device
+    )
+    screen = ray_tracing.compute_mesh_intersections(triangles, rays)
+    sin_q = 1 / 2
+    cos_q = (1 - sin_q**2) ** 0.5
+    rotation = torch.tensor(
+        [[1, 0, 0], [0, cos_q, sin_q], [0, -sin_q, cos_q]], device=triangles.device
+    )
+    screen_rotated = ray_tracing.compute_mesh_intersections(
+        triangles @ rotation, rays @ rotation
+    )
+    assert_close(screen, screen_rotated)
