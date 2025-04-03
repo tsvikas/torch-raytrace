@@ -1,5 +1,6 @@
 """Plot renders."""
 
+from pathlib import Path
 from typing import Literal
 
 # ruff: noqa: T201
@@ -196,7 +197,7 @@ def main() -> None:
     plot_render(*render_pikachu())
 
 
-def pikachu_side() -> None:
+def pikachu_side(output_fn: Path | None = None) -> None:
     """Render an image from side view, to use for the readme."""
     num_pixels_yz: int = 300
     yz_limit: float = 3.5
@@ -221,10 +222,9 @@ def pikachu_side() -> None:
 
     screen = compute_mesh_intersections(triangles, rays)
     ax = plot_2d(screen, axis=axis)
-    plt.show()
     fig = ax.figure
     assert isinstance(fig, Figure)
-    fig.savefig("../../pikachu.png")
+    fig.savefig(output_fn)
 
 
 if __name__ == "__main__":
