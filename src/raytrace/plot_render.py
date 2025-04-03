@@ -1,7 +1,8 @@
 """Plot renders."""
 
-# ruff: noqa: T201
+from typing import Literal
 
+# ruff: noqa: T201
 import einops
 import matplotlib.pyplot as plt
 import torch
@@ -17,8 +18,10 @@ def render_pikachu(
     yz_limit: float = 2,
     x0: float = -10,
     x1: float = 10,
+    axis: Literal["yz", "zx", "xy"] = "yz",
     device: str | torch.device = "cuda",
 ) -> tuple[
+    Literal["yz", "zx", "xy"],
     Float[torch.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"],
     Float[torch.Tensor, "triangles 3 xyz"],
     Float[torch.Tensor, "{num_pixels_y} {num_pixels_z}"],
@@ -32,6 +35,7 @@ def render_pikachu(
         z_limit=-yz_limit,
         x0=x0,
         x1=x1,
+        axis=axis,
         device=device,
     )
 
@@ -41,8 +45,10 @@ def render_snorlax(
     yz_limit: float = 100,
     x0: float = -400,
     x1: float = 100,
+    axis: Literal["yz", "zx", "xy"] = "zx",
     device: str | torch.device = "cuda",
 ) -> tuple[
+    Literal["yz", "zx", "xy"],
     Float[torch.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"],
     Float[torch.Tensor, "triangles 3 xyz"],
     Float[torch.Tensor, "{num_pixels_y} {num_pixels_z}"],
@@ -56,11 +62,12 @@ def render_snorlax(
         z_limit=-yz_limit,
         x0=x0,
         x1=x1,
+        axis=axis,
         device=device,
     )
 
 
-def render_asset(  # noqa: PLR0913
+def render_asset(
     asset: str,
     num_pixels_z: int,
     num_pixels_y: int,
@@ -68,15 +75,17 @@ def render_asset(  # noqa: PLR0913
     z_limit: float,
     x0: float,
     x1: float,
+    axis: Literal["yz", "zx", "xy"] = "yz",
     device: str | torch.device = "cuda",
 ) -> tuple[
+    Literal["yz", "zx", "xy"],
     Float[torch.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"],
     Float[torch.Tensor, "triangles 3 xyz"],
     Float[torch.Tensor, "{num_pixels_y} {num_pixels_z}"],
 ]:
     """Load and render an asset."""
     rays = generate_rays_2d(
-        num_pixels_y, num_pixels_z, y_limit, z_limit, x0, x1, device=device
+        num_pixels_y, num_pixels_z, y_limit, z_limit, x0, x1, axis, device=device
     )
     triangles = assets.load(asset, device=device)
     bounding_box = torch.stack(
@@ -84,7 +93,7 @@ def render_asset(  # noqa: PLR0913
     ).cpu()
     print(f"{bounding_box=}")
     screen = compute_mesh_intersections(triangles, rays)
-    return rays, triangles, screen
+    return axis, rays, triangles, screen
 
 
 def plot_3d(
@@ -114,6 +123,7 @@ def plot_2d(
     points: Float[torch.Tensor, "points xyz"],
     ax: Axes | None = None,
     extent: tuple[float, float, float, float] | None = None,
+    axis: Literal["yz", "zx", "xy"] = "yz",
 ) -> Axes:
     """Plot screen and points in 2D."""
     if ax is None:
@@ -121,13 +131,17 @@ def plot_2d(
 
     ax.imshow(screen.cpu(), cmap="cividis_r", extent=extent)
     points = points.cpu()
-    ax.scatter(points[:, 2], points[:, 1], c=points[:, 0])
+    axis1 = ord(axis[0]) - ord("x")
+    axis2 = ord(axis[1]) - ord("x")
+    axis0 = 3 - axis1 - axis2
+    ax.scatter(points[:, axis2], points[:, axis1], c=points[:, axis0])
 
-    ax.set(xlabel="z", ylabel="y")
+    ax.set(xlabel=axis[1], ylabel=axis[0])
     return ax
 
 
 def plot_render(
+    axis: Literal["yz", "zx", "xy"],
     rays: Float[torch.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"],
     triangles: Float[torch.Tensor, "triangles 3 xyz"],
     screen: Float[torch.Tensor, "{num_pixels_y} {num_pixels_z}"],
@@ -147,6 +161,7 @@ def plot_render(
         screen=screen,
         points=einops.rearrange(triangles, "triangles p3 xyz -> (triangles p3) xyz"),
         extent=(z_limit, -z_limit, -y_limit, y_limit),
+        axis=axis,
     )
     plt.show()
 

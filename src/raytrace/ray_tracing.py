@@ -10,19 +10,22 @@ Key Concepts:
 - **Rays**: Defined by an origin and a next-point, emitted from the camera.
 """
 
+from typing import Literal
+
 import einops
 import torch
 from jaxtyping import Bool, Float
 from torch import linalg
 
 
-def generate_rays_2d(  # noqa: PLR0913
+def generate_rays_2d(
     num_pixels_y: int,
     num_pixels_z: int,
     y_limit: float,
     z_limit: float,
     x0: float,
     x1: float,
+    axis: Literal["yz", "zx", "xy"] = "yz",
     device: str | torch.device = "cuda",
 ) -> Float[torch.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"]:
     """Generate 2D Rays from the Origin.
@@ -38,18 +41,22 @@ def generate_rays_2d(  # noqa: PLR0913
 
     Returns: the origin and next-point of each ray.
     """
+    axis1 = ord(axis[0]) - ord("x")
+    axis2 = ord(axis[1]) - ord("x")
+    axis0 = 3 - axis1 - axis2
+
     rays = torch.zeros(
         (2, 3, num_pixels_y, num_pixels_z), dtype=torch.float32, device=device
     )
-    rays[0, 0] = x0
-    rays[1, 0] = x1
-    rays[1, 1] = einops.repeat(
+    rays[0, axis0] = x0
+    rays[1, axis0] = x1
+    rays[1, axis1] = einops.repeat(
         torch.linspace(y_limit, -y_limit, num_pixels_y),
         "y -> y z",
         y=num_pixels_y,
         z=num_pixels_z,
     )
-    rays[1, 2] = einops.repeat(
+    rays[1, axis2] = einops.repeat(
         torch.linspace(z_limit, -z_limit, num_pixels_z),
         "z -> y z",
         y=num_pixels_y,
