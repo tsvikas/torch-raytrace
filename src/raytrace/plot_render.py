@@ -23,9 +23,9 @@ def render_pikachu(
     device: str | torch.device = "cuda",
 ) -> tuple[
     Literal["yz", "zx", "xy"],
-    Float[torch.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"],
+    Float[torch.Tensor, "{num_pixels_yz} {num_pixels_yz} 2 xyz"],
     Float[torch.Tensor, "triangles 3 xyz"],
-    Float[torch.Tensor, "{num_pixels_y} {num_pixels_z}"],
+    Float[torch.Tensor, "{num_pixels_yz} {num_pixels_yz}"],
 ]:
     """Load and render pikachu."""
     return render_asset(
@@ -50,9 +50,9 @@ def render_snorlax(
     device: str | torch.device = "cuda",
 ) -> tuple[
     Literal["yz", "zx", "xy"],
-    Float[torch.Tensor, "{num_pixels_y} {num_pixels_z} 2 xyz"],
+    Float[torch.Tensor, "{num_pixels_yz} {num_pixels_yz} 2 xyz"],
     Float[torch.Tensor, "triangles 3 xyz"],
-    Float[torch.Tensor, "{num_pixels_y} {num_pixels_z}"],
+    Float[torch.Tensor, "{num_pixels_yz} {num_pixels_yz}"],
 ]:
     """Load and render pikachu."""
     return render_asset(
